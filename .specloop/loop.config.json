@@ -1,0 +1,15 @@
+{
+  "workers": [
+    {
+      "cli": "agy",
+      "args": ["--headless", "--non-interactive"]
+    }
+  ],
+  "logDir": ".specloop/logs",
+  "contextFiles": [
+    "AGENTS.md",
+    "planning/architecture.md",
+    "planning/styles.md"
+  ],
+  "language": "es"
+}

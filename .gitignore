@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.agent/
+.specloop/logs/*
+!.specloop/logs/.gitkeep
+bin/
+obj/
+*.user
+*.suo
+.env
+.DS_Store
+Thumbs.db

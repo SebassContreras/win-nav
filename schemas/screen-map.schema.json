@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://win-nav.local/schemas/screen-map.schema.json",
+  "title": "win-nav desktop screen map",
+  "description": "What a Windows desktop application offers on each window: fields, actions, and named flows. Learned from live UI Automation snapshots, committed per app, read by agents instead of snapshotting known windows.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "app", "screens"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": {
+      "description": "SemVer; consumers accept any 1.x.y.",
+      "type": "string",
+      "pattern": "^1\\.\\d+\\.\\d+$"
+    },
+    "app": { "$ref": "#/$defs/app" },
+    "screens": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/screen" }
+    },
+    "journeys": {
+      "description": "Multi-window declarative workflows (User Journeys) executing across dialogs and window transitions.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/journey" }
+    },
+    "unmapped": {
+      "description": "Known gaps: windows seen but never observed, or dialogs not yet visited.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/unmapped" }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "processName", "learnedAt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "name": { "type": "string", "minLength": 1 },
+        "processName": {
+          "description": "Target executable process name, e.g. Sigestran.exe or Sigestran",
+          "type": "string",
+          "minLength": 1
+        },
+        "executablePath": { "description": "Resolved path or Velopack path pattern", "type": "string" },
+        "version": { "description": "Application assembly version", "type": "string" },
+        "locale": {
+          "description": "BCP 47 language tag of the UI",
+          "type": "string",
+          "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$"
+        },
+        "learnedAt": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "locator": {
+      "description": "How to re-find a control in the UI Automation tree.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["controlType"],
+      "properties": {
+        "controlType": { "type": "string", "minLength": 1 },
+        "automationId": { "type": "string" },
+        "name": { "type": "string" },
+        "className": { "type": "string" },
+        "occurrence": {
+          "description": "Zero-based index among elements sharing matching properties.",
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "controlType", "name", "sensitive", "agentFillable", "locator"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "controlType": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "automationId": { "type": "string" },
+        "container": { "description": "Parent container AutomationId or name", "type": "string" },
+        "required": { "type": "boolean", "default": false },
+        "sensitive": {
+          "description": "Passwords or secrets. Values are never read into snapshots.",
+          "type": "boolean"
+        },
+        "agentFillable": {
+          "description": "False means the user fills it by hand; the agent must refuse.",
+          "type": "boolean"
+        },
+        "locator": { "$ref": "#/$defs/locator" }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "controlType", "name", "kind", "effect", "locator"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "controlType": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "automationId": { "type": "string" },
+        "kind": { "enum": ["button", "menuitem", "toggle", "tab", "invoke"] },
+        "effect": {
+          "description": "none: nothing observable; ui-state: local UI/dialog; submit: mutates data or saves.",
+          "enum": ["none", "ui-state", "submit"]
+        },
+        "requires": {
+          "description": "Field ids that must be filled first.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/slug" },
+          "uniqueItems": true
+        },
+        "locator": { "$ref": "#/$defs/locator" }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "target"],
+      "properties": {
+        "op": { "enum": ["fill", "click", "select"] },
+        "target": {
+          "description": "`@<id>` of a field or action on the same screen.",
+          "type": "string",
+          "pattern": "^@[a-z0-9A-Za-z_-]+$"
+        },
+        "from": {
+          "description": "For fill: name of the flow input that supplies the text.",
+          "type": "string"
+        }
+      }
+    },
+    "flow": {
+      "description": "Named sequence of actions inside a single window/dialog.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "humanOnly", "inputSchema", "steps"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "description": { "type": "string", "minLength": 1 },
+        "humanOnly": {
+          "description": "True when any step touches a sensitive field.",
+          "type": "boolean"
+        },
+        "inputSchema": { "type": "object" },
+        "steps": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/step" } }
+      }
+    },
+    "screen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "titlePattern", "observedAt", "fields", "actions", "flows"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "titlePattern": {
+          "description": "Window title string or regex pattern to identify this window",
+          "type": "string",
+          "minLength": 1
+        },
+        "formName": { "description": "Form class or AutomationId (e.g. MainForm)", "type": "string" },
+        "fingerprint": {
+          "description": "sha256 over sorted controlType<TAB>automationId<TAB>name lines",
+          "type": "string"
+        },
+        "observedAt": { "$ref": "#/$defs/timestamp" },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "flows": { "type": "array", "items": { "$ref": "#/$defs/flow" } }
+      }
+    },
+    "unmapped": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "windowTitle": { "type": "string" },
+        "reason": { "enum": ["modal-dialog", "not-visited", "admin-required"] },
+        "discoveredFrom": { "$ref": "#/$defs/slug" },
+        "note": { "type": "string" }
+      }
+    },
+    "journeyStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["screenId", "action"],
+      "properties": {
+        "screenId": { "$ref": "#/$defs/slug" },
+        "action": {
+          "description": "Action, flow, or semantic op to execute on screenId: flow:<id> or @<id> or fill:@<id>=<val> or click:@<id>",
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "description": "Input mapping for the step",
+          "type": "object"
+        },
+        "expectScreen": {
+          "description": "Screen id expected after window transition and settle.",
+          "$ref": "#/$defs/slug"
+        }
+      }
+    },
+    "journey": {
+      "description": "Multi-window workflow executing across window/dialog transitions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "steps"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "description": { "type": "string", "minLength": 1 },
+        "humanOnly": {
+          "description": "True if any step touches a sensitive field or human-only flow.",
+          "type": "boolean",
+          "default": false
+        },
+        "inputSchema": { "type": "object" },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/journeyStep" }
+        }
+      }
+    }
+  }
+}
