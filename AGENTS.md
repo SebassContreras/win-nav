@@ -25,6 +25,7 @@ This file is the single agent-instructions entrypoint; there is no `CLAUDE.md` c
 - `planning/handoff.md` — Current execution state, live testing log, safety notes, and next priorities.
 - `docs/windows-uia.md` — Windows UI Automation architecture, FlaUI bridge, cross-desktop attachment.
 - `docs/screen-map.md` — Desktop screen map schema, window matching, compact view, and User Journeys.
+- `docs/navigation-guide.md` — Desktop navigation guide: WinForms, ComponentOne Ribbon, and WebView2.
 - `docs/mcp.md` — MCP stdio server setup, tool registry, resources, and client configuration.
 - `planning/specs/NNN-name/{requirements,design,tasks}.md` — Spec-driven implementation packages.
 

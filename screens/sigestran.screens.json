@@ -1,0 +1,142 @@
+{
+  "$schema": "../schemas/screen-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "app": {
+    "id": "sigestran",
+    "name": "Sigestran",
+    "processName": "Sigestran.exe",
+    "executablePath": "%LocalAppData%\\Sigestran-pre\\current\\Sigestran.exe",
+    "locale": "es-ES",
+    "learnedAt": "2026-10-02T16:59:00Z"
+  },
+  "screens": [
+    {
+      "id": "menu-principal",
+      "titlePattern": "^Menu Principal.*",
+      "formName": "MainForm",
+      "observedAt": "2026-10-02T16:59:00Z",
+      "fields": [],
+      "actions": [
+        {
+          "id": "tab-trafico",
+          "controlType": "TabItem",
+          "name": "Tráfico",
+          "automationId": "RTTrafico",
+          "kind": "tab",
+          "effect": "ui-state",
+          "locator": {
+            "controlType": "TabItem",
+            "automationId": "RTTrafico"
+          }
+        },
+        {
+          "id": "btn-pizarra",
+          "controlType": "Button",
+          "name": "Pizarra",
+          "automationId": "RBtnPizarra",
+          "kind": "button",
+          "effect": "ui-state",
+          "requires": ["tab-trafico"],
+          "locator": {
+            "controlType": "Button",
+            "automationId": "RBtnPizarra"
+          }
+        },
+        {
+          "id": "btn-abrir-ticket",
+          "controlType": "Button",
+          "name": "BtnAbrirTicket",
+          "automationId": "BtnAbrirTicket",
+          "kind": "button",
+          "effect": "ui-state",
+          "locator": {
+            "controlType": "Button",
+            "automationId": "BtnAbrirTicket"
+          }
+        },
+        {
+          "id": "btn-control-tower",
+          "controlType": "Button",
+          "name": "BtnControlTower",
+          "automationId": "BtnControlTower",
+          "kind": "button",
+          "effect": "ui-state",
+          "locator": {
+            "controlType": "Button",
+            "automationId": "BtnControlTower"
+          }
+        }
+      ],
+      "flows": [
+        {
+          "id": "abrir-pizarra-flow",
+          "description": "Navega en el Ribbon seleccionando la pestaña Tráfico y haciendo clic en Pizarra",
+          "humanOnly": false,
+          "inputSchema": {
+            "type": "object"
+          },
+          "steps": [
+            {
+              "op": "click",
+              "target": "@tab-trafico"
+            },
+            {
+              "op": "click",
+              "target": "@btn-pizarra"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pizarra",
+      "titlePattern": ".*Pizarra.*",
+      "observedAt": "2026-10-02T16:59:00Z",
+      "fields": [
+        {
+          "id": "filtro-pizarra",
+          "controlType": "Edit",
+          "name": "Filtro",
+          "sensitive": false,
+          "agentFillable": true,
+          "locator": {
+            "controlType": "Edit",
+            "className": "WindowsForms10.Edit.app.0.225e691_r3_ad1"
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "btn-agregar",
+          "controlType": "Button",
+          "name": "➕",
+          "kind": "button",
+          "effect": "ui-state",
+          "locator": {
+            "controlType": "Button",
+            "name": "➕"
+          }
+        }
+      ],
+      "flows": []
+    }
+  ],
+  "journeys": [
+    {
+      "id": "abrir-pizarra",
+      "description": "Navega desde el Menú Principal a través del Ribbon Tráfico hasta la Pizarra de Tráfico",
+      "steps": [
+        {
+          "screenId": "menu-principal",
+          "action": "click:@tab-trafico",
+          "expectScreen": "menu-principal"
+        },
+        {
+          "screenId": "menu-principal",
+          "action": "click:@btn-pizarra",
+          "expectScreen": "pizarra"
+        }
+      ]
+    }
+  ]
+}
